@@ -1,0 +1,65 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>sqlite-example</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>sqlite-example Sqlite java integration with SmartSync</name>
+	<dependencies>
+		<dependency>
+			<groupId>org.xerial</groupId>
+			<artifactId>sqlite-jdbc</artifactId>
+			<version>3.8.6</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.17</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>org.slf4j</groupId> -->
+		<!-- <artifactId>slf4j-api</artifactId> -->
+		<!-- <version>1.7.5</version> -->
+		<!-- <type>jar</type> -->
+		<!-- <scope>compile</scope> -->
+		<!-- </dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.slf4j</groupId> -->
+		<!-- <artifactId>slf4j-log4j12</artifactId> -->
+		<!-- <version>1.7.5</version> -->
+		<!-- <type>jar</type> -->
+		<!-- <scope>compile</scope> -->
+		<!-- </dependency> -->
+		<dependency>
+			<groupId>smartsync-core</groupId>
+			<artifactId>smartsync-core</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jdbc</artifactId>
+			<version>4.2.0.RELEASE</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.4.188</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.aeonbits.owner</groupId>
+			<artifactId>owner</artifactId>
+			<version>1.0.8</version>
+		</dependency>
+	</dependencies>
+
+	<parent>
+		<groupId>smartsync</groupId>
+		<artifactId>smartsync-root</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+</project>

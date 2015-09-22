@@ -1,0 +1,7 @@
+/target/
+/db1.sqlite
+/db2.sqlite
+/sample.db
+/test.db
+/emptydb.sqlite
+dump_*
