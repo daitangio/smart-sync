@@ -4,7 +4,32 @@
 	<artifactId>sqlite-example</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>sqlite-example Sqlite java integration with SmartSync</name>
+	<properties>
+		<restlet-version>2.3.4</restlet-version>
+	</properties>
+	<repositories>
+     <repository>
+        <id>restlet</id>
+        <url>http://maven.restlet.com/</url>
+        <releases>
+           <enabled>true</enabled>
+        </releases>
+        <!-- You can disable snapshot resolution to speed up your builds -->
+        <snapshots>
+          <enabled>true</enabled>
+        </snapshots>        
+     </repository></repositories>
 	<dependencies>
+		<dependency>
+			<groupId>org.restlet.jse</groupId>
+			<artifactId>org.restlet</artifactId>
+			<version>${restlet-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.restlet.jse</groupId>
+			<artifactId>org.restlet.ext.jackson</artifactId>
+			<version>${restlet-version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.xerial</groupId>
 			<artifactId>sqlite-jdbc</artifactId>
