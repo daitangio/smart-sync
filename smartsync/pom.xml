@@ -1,5 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>smartsync</groupId>
 	<artifactId>smartsync-root</artifactId>
@@ -8,7 +8,8 @@
 	<modules>
 		<module>smartsync-core</module>
 		<module>smartsync-example</module>
-	</modules>
+    	<module>smartsync-rest</module>
+  </modules>
 	<build>
 
 		<plugins>
@@ -35,31 +36,7 @@
 			<!-- </configuration> -->
 			<!-- </plugin> -->
 
-			<!--  GG See http://stackoverflow.com/questions/574594/how-can-i-create-an-executable-jar-with-dependencies-using-maven  -->
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<archive>
-						<manifest>
-							<mainClass>com.nttdata.gundam.DBCopy</mainClass>
-						</manifest>
-					</archive>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-					    <finalName>dbcopy-standalone</finalName>
-        				<appendAssemblyId>false</appendAssemblyId>
-				</configuration>
-				<executions>
-				    <execution>
-				      <id>make-assembly</id> <!-- this is used for inheritance merges -->
-				      <phase>package</phase> <!-- bind to the packaging phase -->
-				      <goals>
-				        <goal>single</goal>
-				      </goals>
-				    </execution>
-				  </executions>			
-			</plugin>
+
 		</plugins>
 	</build>
 </project>
