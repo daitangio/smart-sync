@@ -1,4 +1,4 @@
-package com.nttdata.gundam;
+package com.gioorgi.smartsync;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -35,12 +35,20 @@ public class DBCopy2SQLite extends DataSourceSillyProvider {
 	}
 
 	String extractQuery;
+	List<String> tableList=null;
 	public DBCopy2SQLite(String srcJdbc, String username, String  pw, String flist){
 		super(srcJdbc, username,  pw, new SQLitePump());
 		this.extractQuery=flist;
 	}
 
-	private void copy() {
+	public DBCopy2SQLite(String srcJdbc, String username, String  pw, List<String> tableList){
+		super(srcJdbc, username,  pw, new SQLitePump());
+		this.extractQuery=null;
+		this.tableList=tableList;
+	}
+	
+	
+	public void copy() {
 		logger.warn("How to populate an empty db with !SmartSync!");
 
 		try
@@ -54,8 +62,12 @@ public class DBCopy2SQLite extends DataSourceSillyProvider {
 			//b.addTables("PERSON");
 			NamedParameterJdbcTemplate t=new NamedParameterJdbcTemplate(getSrcDs());
 			// public <T> List<T> queryForList(String sql, Map<String, ?> paramMap, Class<T> elementType)
-			List<String> tables= t.queryForList(this.extractQuery, new TreeMap<String, Object>(), String.class);
-			
+			final List<String> tables;
+			if(tableList==null){ 
+				tables= t.queryForList(this.extractQuery, new TreeMap<String, Object>(), String.class);
+			}else{
+				tables=tableList;
+			}
 			b.addTables(tables);
 
 			logger.info("Db1 and db2 ready. Demo sync db1->db2");

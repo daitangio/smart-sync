@@ -1,4 +1,4 @@
-package com.nttdata.gundam;
+package com.gioorgi.smartsync;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

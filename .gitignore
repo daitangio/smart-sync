@@ -6,3 +6,9 @@ pom.xml.next
 release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
+
+smartsync/smartsync-example/.settings
+smartsync/smartsync-core/.settings
+smartsync/smartsync-rest/.settings
+.classpath
+.project

@@ -12,6 +12,8 @@ import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
+import com.gioorgi.smartsync.DataSourceSillyProvider;
+
 public class H2Test extends DataSourceSillyProvider{
 	private Logger   logger=Logger.getLogger(getClass());
 	public static void main(String[] args) throws ClassNotFoundException 

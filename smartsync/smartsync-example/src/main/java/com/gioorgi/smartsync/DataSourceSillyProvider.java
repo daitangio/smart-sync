@@ -1,4 +1,4 @@
-package com.nttdata.gundam;
+package com.gioorgi.smartsync;
 
 import java.io.PrintWriter;
 import java.sql.Connection;
