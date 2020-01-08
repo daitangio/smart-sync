@@ -8,7 +8,6 @@
 	<modules>
 		<module>smartsync-core</module>
 		<module>smartsync-example</module>
-    	<module>smartsync-rest</module>
   </modules>
 	<build>
 
