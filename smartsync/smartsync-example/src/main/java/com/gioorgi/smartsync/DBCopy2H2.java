@@ -67,6 +67,7 @@ public class DBCopy2H2 extends DataSourceSillyProvider {
 
 		 */
 		logger.warn("How to populate an empty db with !SmartSync!");
+		logger.info("Extract Query:"+extractQuery);
 
 		try
 		{

@@ -53,7 +53,7 @@ public class DBCopy2SQLite extends DataSourceSillyProvider {
 
 		try
 		{
-			// create a database connection. Exmple of in memory
+			// create a database connection. Example of in memory
 
 			SmartSyncPump b=new SQLitePump();
 			b.setSource(getSrcDs());

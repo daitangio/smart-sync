@@ -1,6 +1,5 @@
 package org.siforge.sm;
 
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -8,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.concurrent.Callable;
 
 import org.apache.log4j.Category;
@@ -16,9 +16,8 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.NDC;
 
 
-/** SmartSync sincronizza il contenuto di una tabella tra due connessioni JDBC.
- * Verifica che i tipi delle colonne siano gli stessi (ma ignora sempre i loro nomi)
- * BUG: Non dovrebbe funzionare con i tipi custom come i  BLOB/CLOB/LOB di Oracle.
+/** SmartSync sync the *content* of two tables between two JDBC connections.
+ * SmartSync supports masking data. Scrambiling is on the go
  * @author Giovanni Giorgi
  */
 public class SmartSync extends MetaSupport implements Callable<String>{
@@ -94,6 +93,14 @@ public class SmartSync extends MetaSupport implements Callable<String>{
 
 	}
 
+	java.util.Map<String,Object> column2suppress= new HashMap<>();
+
+	/** Replace a column with a fixed one. i.e. destroy sensitive information
+	 */
+	public void mask(String column, Object maskedValue){
+		column2suppress.put(column.toUpperCase(),maskedValue);
+	}
+
 	/** Metodo da chiamare per effettuare una sincronizzazione completa
 	 */
 	public String syncAll() throws SQLException {
@@ -113,8 +120,9 @@ public class SmartSync extends MetaSupport implements Callable<String>{
 		ResultSet rsSrc= this.source.createStatement().executeQuery(universalSelect);
 		PreparedStatement insertStm=this.dest.prepareStatement(universalInsert);
 		long cTime=System.currentTimeMillis();
+		long masked_rows=0;
 		while(rsSrc.next()){
-
+			boolean masked=false;
 			// Read from Src and write to dest....
 			for(int i=1; i<= this.columns; i++){
 				objC=rsSrc.getObject(i);
@@ -122,14 +130,23 @@ public class SmartSync extends MetaSupport implements Callable<String>{
 
 				//log.debug("Processing COL:"+i+" Src:"+objC);
 				if(objC!=null) {
-					insertStm.setObject(i,objC, type);
+					String columnName=rsSrc.getMetaData().getColumnName(i).toUpperCase();					
+					if(column2suppress.size() > 0 && column2suppress.containsKey(columnName)){						
+						insertStm.setObject(i, column2suppress.get(columnName), type);
+						masked=true;
+					}else {
+						insertStm.setObject(i,objC, type);
+					}
 				}else{
 					// Gli oggetti null vanno trattati diversamente.
 					insertStm.setNull(i, type);
 				}
-			}
+			}			
 			insertStm.execute();
 			rowProcessed++;
+			if(masked){
+				masked_rows++;
+			}
 			if((System.currentTimeMillis()-cTime) > PERFROMANCE_LOG_SPAN_MS ) {
 				cTime=System.currentTimeMillis();
 				long timeTaken = System.currentTimeMillis()-startTime;
@@ -140,7 +157,7 @@ public class SmartSync extends MetaSupport implements Callable<String>{
 		dest.commit();
 		rsSrc.close();
 		final long timeTaken = System.currentTimeMillis()-startTime;
-		final String result = "SmartSync->"+targetTable+" Rows Processed:"+rowProcessed+ " into "+timeTaken
+		final String result = "SmartSync->"+targetTable+" Rows Processed:"+rowProcessed+ (masked_rows>0?" *Masked* "+masked_rows:"") +" into "+timeTaken
 				+ "ms Row/sec:"+        
 				(1000f*(rowProcessed)/timeTaken);
 		logger.info(result);
