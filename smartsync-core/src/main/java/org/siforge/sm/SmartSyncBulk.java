@@ -56,7 +56,7 @@ public class SmartSyncBulk {
 					throw new SyncException(e);
 				}
 			}									
-		} catch (SyncException | SQLException | InterruptedException e) {
+		} catch (Exception e) {
 			throw new SyncException(e);
 		}
 	}
