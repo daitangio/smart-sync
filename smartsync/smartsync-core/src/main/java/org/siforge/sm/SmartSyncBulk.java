@@ -45,20 +45,20 @@ public class SmartSyncBulk {
 	public void syncAll() throws SyncException {
 		try {
 			ForkJoinPool pool = new ForkJoinPool(threads);
-			logger.debug("/- Submitting "+relations2Sync.size()+" Table to sync in parallel ForkJoinPool:"+threads);
+			logger.info("/- Submitting "+relations2Sync.size()+" Table to sync in parallel ForkJoinPool:"+threads);
 			for (String table : relations2Sync) {
 				SmartSync s = new SmartSync(table, source.getConnection(),
 						destination.getConnection());
 				pool.submit(s);
 			}
-			logger.debug("Waiting task to finish...");
+			logger.info("Waiting task to finish...");
 			pool.shutdown();
 			while (!pool.awaitTermination(100, TimeUnit.MILLISECONDS)) {
 				logger.trace("Waiting termination...Threads:"
 						+ pool.getPoolSize() + " Task to end:"
 						+ pool.getQueuedSubmissionCount());
 			}
-			logger.debug("\\- Bulk Sync ok");
+			logger.info("\\- Bulk Sync ok");
 		} catch (SyncException | SQLException | InterruptedException e) {
 			throw new SyncException(e);
 		}

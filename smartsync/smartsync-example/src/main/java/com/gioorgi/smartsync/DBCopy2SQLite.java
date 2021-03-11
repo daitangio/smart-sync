@@ -18,7 +18,10 @@ public class DBCopy2SQLite extends DataSourceSillyProvider {
 	private Logger   logger=Logger.getLogger(getClass());
 	public static void main(String[] args) throws ClassNotFoundException
 	{
+		// Cite some driver for fun
 		Class.forName("org.sqlite.JDBC");
+		Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+
 		if (args.length ==0 || args[0].startsWith("--help") || args.length < 4 ){
 			System.out.println("Option: <jdbcurl> <username> <password> destdb table1,table2,table3");
 			System.out.println("Example: ");
@@ -71,7 +74,7 @@ public class DBCopy2SQLite extends DataSourceSillyProvider {
 			}
 			b.addTables(tables);
 
-			logger.info("Db1 and db2 ready. Demo sync db1->db2");
+			logger.info("Db1 and db2 ready. Speed sync db1->db2");
 
 
 			b.syncAll();
