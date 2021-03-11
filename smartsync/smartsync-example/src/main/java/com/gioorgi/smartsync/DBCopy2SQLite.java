@@ -50,7 +50,7 @@ public class DBCopy2SQLite extends DataSourceSillyProvider {
 	
 	
 	public void copy() {
-		logger.warn("!SmartSync! SQLite dump is HERE");
+		logger.warn("!SmartSync! SQLite dump. JDK version: "+System.getProperty("java.version"));
 
 		try
 		{
