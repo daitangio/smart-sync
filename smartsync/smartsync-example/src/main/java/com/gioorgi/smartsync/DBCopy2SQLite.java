@@ -5,21 +5,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.DateFormat;
-import java.util.Date;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
-import javax.swing.text.DateFormatter;
 
-import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
-import org.apache.log4j.helpers.ISO8601DateFormat;
-import org.siforge.sm.SmartSync;
-import org.siforge.sm.SmartSyncBulk;
 import org.siforge.sm.pump.SQLitePump;
 import org.siforge.sm.pump.SmartSyncPump;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 public class DBCopy2SQLite extends DataSourceSillyProvider {
 
@@ -27,29 +19,38 @@ public class DBCopy2SQLite extends DataSourceSillyProvider {
 	public static void main(String[] args) throws ClassNotFoundException
 	{
 		Class.forName("org.sqlite.JDBC");
-		String srcJdbc=args[0];
-		String username=args[1], pw=args[2];
-		String flist=args[3];
-		(new DBCopy2SQLite(srcJdbc, username,pw,flist)).copy();
-
+		if (args.length ==0 || args[0].startsWith("--help") || args.length < 4 ){
+			System.out.println("Option: <jdbcurl> <username> <password> destdb table1,table2,table3");
+			System.out.println("Example: ");
+		}else {
+			String srcJdbc=args[0];
+			String username=args[1], pw=args[2];
+			String fileDest=args[3];
+			
+			(new DBCopy2SQLite(srcJdbc, username,pw, fileDest,
+				Arrays.asList(args[4].split(",") )) ).copy();
+		}
 	}
 
 	String extractQuery;
 	List<String> tableList=null;
-	public DBCopy2SQLite(String srcJdbc, String username, String  pw, String flist){
+	public DBCopy2SQLite(String srcJdbc, String username, String  pw, String extractionQuery){
 		super(srcJdbc, username,  pw, new SQLitePump());
-		this.extractQuery=flist;
+		this.extractQuery=extractionQuery;
 	}
 
-	public DBCopy2SQLite(String srcJdbc, String username, String  pw, List<String> tableList){
-		super(srcJdbc, username,  pw, new SQLitePump());
+	public DBCopy2SQLite(String srcJdbc, String username, String  pw, String fileDest, List<String> tableList){
+		super(srcJdbc, username,  pw, new SQLitePump(),fileDest);
 		this.extractQuery=null;
 		this.tableList=tableList;
 	}
+
+
+
 	
 	
 	public void copy() {
-		logger.warn("How to populate an empty db with !SmartSync!");
+		logger.warn("!SmartSync! SQLite dump is HERE");
 
 		try
 		{

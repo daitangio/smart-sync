@@ -50,7 +50,7 @@ public class SQLitePump extends SmartSyncPump {
 	@Override
 	public
 	String jdbcString(String filename) {		
-		return "jdbc:sqlite:"+filename+".sqlite";
+		return "jdbc:sqlite:"+filename;
 	}
 
 

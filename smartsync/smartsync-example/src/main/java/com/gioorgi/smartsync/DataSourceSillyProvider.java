@@ -22,11 +22,14 @@ public class DataSourceSillyProvider {
 	public DataSourceSillyProvider() {
 		super();
 	}
-	
 	public DataSourceSillyProvider(String srcJdbc, String username, String  pw, SmartSyncPump pump){
+		this(srcJdbc,username,pw,pump,  "./dump_"+ ISO8601DateFormat.getDateInstance().format(new Date())+".sqlite");
+	}
+
+	public DataSourceSillyProvider(String srcJdbc, String username, String  pw, SmartSyncPump pump, String destfilename){		
 		this.srcJdbc=srcJdbc; this.username=username; this.pw=pw; 
-		dstJdbc=pump.jdbcString( "./dump_"+
-				ISO8601DateFormat.getDateInstance().format(new Date()));
+		// SQLite filename
+		dstJdbc=pump.jdbcString(destfilename);
 	}
 
 	protected DataSource getSrcDs() {
