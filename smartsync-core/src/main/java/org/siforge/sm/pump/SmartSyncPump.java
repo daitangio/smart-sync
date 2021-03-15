@@ -36,7 +36,17 @@ public abstract class SmartSyncPump extends MetaSupport {
 	 * @return
 	 */
 	public abstract String jdbcString(String filename) ;
+
+	/* Simple, not parallel sync
+	 */
 	public void syncAll(){
+		syncAll(false);
+	}
+	/**
+	 * 
+	 * @param parallel when true try parallel mode. It seems bugged, avoid it for the meantime
+	 */
+	public void syncAll(boolean parallel){
 		try{
 			logger.trace("Ensuring all tables are in dest...");
 			Connection sc=source.getConnection();
@@ -58,7 +68,11 @@ public abstract class SmartSyncPump extends MetaSupport {
 			bulk.setDestination(destination);
 			bulk.addTables(relations2Sync);
 			bulk.setThreads(8);
-			bulk.syncAll();
+			if(parallel){
+				bulk.syncAllParallel();
+			}else {
+				bulk.syncAll();
+			}
 		} catch (SQLException e) {
 			throw new SyncException(e);
 		}finally {

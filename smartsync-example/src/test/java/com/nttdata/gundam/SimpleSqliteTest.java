@@ -6,13 +6,24 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
+
+import javax.sql.DataSource;
 
 import org.junit.*;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.siforge.sm.SmartSync;
+import org.siforge.sm.SmartSyncBulk;
+import org.siforge.sm.pump.SQLitePump;
+import org.siforge.sm.pump.SmartSyncPump;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.io.PrintWriter;
 import java.sql.*;
 
 import junit.framework.TestCase;
@@ -69,6 +80,7 @@ public class SimpleSqliteTest /*extends TestCase*/{
 
 	}
 
+	@Ignore
 	@Test
 	public void playDemo() {
 		Connection db1source=null , db2dest=null;
@@ -114,6 +126,64 @@ public class SimpleSqliteTest /*extends TestCase*/{
 		
 	}
 
+	
+	@Test
+	public void testBulkBug() throws SQLException{
+		Connection connection = DriverManager.getConnection("jdbc:sqlite:./db-src.sqlite");
+		File destFile=new File("./db-dest.sqlite");
+		if (destFile.exists()){
+			destFile.delete();
+		}
+		Connection db2=DriverManager.getConnection("jdbc:sqlite:./db-dest.sqlite");
+		long expectedResult=0;
+		List<String> tableNames=Arrays.asList("person","pet","pup","croc","cat","fish", "dog");
+
+		for (String tb : tableNames) {
+			expectedResult+=populateDummyData(connection,40000,tb);				
+		}
+		connection.close();
+		db2.close();
+		SmartSyncPump b=new SQLitePump();
+		b.setSource(getSrcDs());
+		b.setDestination(getDestDs());
+		b.addTables(tableNames);				
+		
+		logger.info("Db1 and db2 ready. Demo sync db1->db2");
+		logger.info("Final size expected:"+expectedResult);
+		
+		b.syncAll(true);
+		long  result=0;
+		db2=getDestDs().getConnection();
+		for (String tb : tableNames) {
+			ResultSet rs=db2.prepareStatement("select count(*) AS C from "+tb).executeQuery();
+			rs.next();
+			result +=rs.getLong("C");
+			logger.info(tb+"#"+result);
+		}
+		logger.info("DEST DB SIZE:"+result);
+		if(expectedResult==result ){
+			logger.info("Smart Sync Bulk worked");
+		}else{
+			logger.fatal("Expected:"+expectedResult+" Got:"+result);
+			fail("Expected:"+expectedResult+" Got:"+result);
+		}
+	}
+
+	/**
+	 * Test to show how to convert raw numbers from date object
+	 * in the mssql ->sqlite use case
+	 */
+	@Ignore
+	@Test 
+	public void mssqlserver2sqlite_date_conv_check(){
+		//should match 2020-10-12 22:58:35
+		assertEquals("Mon Oct 12 22:58:35 CEST 2020", ""+(new java.util.Date(1602536315687l)));	
+		
+		assertEquals("Thu Oct 29 23:28:38 CET 2020", ""+(new java.util.Date(1604010518700l)));
+		
+	}
+
+	@Ignore
 	@Test
 	public void dataMaskDemo() throws SQLException{
 		Connection db1source=null , db2dest=null;
@@ -146,15 +216,19 @@ public class SimpleSqliteTest /*extends TestCase*/{
 		"Enzo Jannacci"
 	 };
 	final Random randomGen= new Random(23);
-	public long populateDummyData(Connection conn, final int rows2pump)
+	public long populateDummyData(Connection conn, final int rows2pump) throws SQLException{
+		return populateDummyData(conn, rows2pump,"person");
+	}
+	public long populateDummyData(Connection conn, final int rows2pump, String tablename)
 			throws SQLException {
+		logger.info("Populating "+tablename);
 		Statement statement = conn.createStatement();
 		
 		statement.setQueryTimeout(30);  // set timeout to 30 sec.
 
-		statement.executeUpdate("drop table if exists person");
-		statement.executeUpdate("create table person (id integer, name string, surname string)");
-		PreparedStatement ps=conn.prepareStatement("insert into person values(?, ?,?)");
+		statement.executeUpdate("drop table if exists "+tablename);
+		statement.executeUpdate("create table "+tablename+" (id integer, name string, surname string)");
+		PreparedStatement ps=conn.prepareStatement("insert into "+tablename+" values(?, ?,?)");
 		// Speed up sqlite
 		conn.setAutoCommit(false);
 		for(int i=1; i<=rows2pump; ){
@@ -170,16 +244,135 @@ public class SimpleSqliteTest /*extends TestCase*/{
 		}
 
 		conn.commit();
-		ResultSet rs = statement.executeQuery("select count(*) AS C from person");
+		ResultSet rs = statement.executeQuery("select count(*) AS C from "+tablename);
 		long personTableSize=-1;
 		while(rs.next())
 		{
 			personTableSize = rs.getLong("C");
-			logger.info(" Persons:"+personTableSize);		
+			logger.info(" "+tablename+"#"+personTableSize);		
 			
 		}
 		return personTableSize;
 		
+	}
+	protected DataSource getSrcDs() {
+		return new  javax.sql.DataSource(){
+
+			@Override
+			public PrintWriter getLogWriter() throws SQLException {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public void setLogWriter(PrintWriter out) throws SQLException {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void setLoginTimeout(int seconds) throws SQLException {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public int getLoginTimeout() throws SQLException {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+
+			@Override
+			public java.util.logging.Logger getParentLogger()
+					throws SQLFeatureNotSupportedException {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public <T> T unwrap(Class<T> iface) throws SQLException {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public boolean isWrapperFor(Class<?> iface) throws SQLException {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public Connection getConnection() throws SQLException {
+				
+				return  DriverManager.getConnection("jdbc:sqlite:./db-src.sqlite");
+			}
+
+			@Override
+			public Connection getConnection(String username, String password)
+					throws SQLException {
+				// TODO Auto-generated method stub
+				return null;
+			}};
+	}
+
+	protected DataSource getDestDs() {
+		return new  javax.sql.DataSource(){
+
+			@Override
+			public PrintWriter getLogWriter() throws SQLException {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public void setLogWriter(PrintWriter out) throws SQLException {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void setLoginTimeout(int seconds) throws SQLException {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public int getLoginTimeout() throws SQLException {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+
+			@Override
+			public java.util.logging.Logger getParentLogger()
+					throws SQLFeatureNotSupportedException {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public <T> T unwrap(Class<T> iface) throws SQLException {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public boolean isWrapperFor(Class<?> iface) throws SQLException {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public Connection getConnection() throws SQLException {
+				
+				return  DriverManager.getConnection("jdbc:sqlite:./db-dest.sqlite");
+			}
+
+			@Override
+			public Connection getConnection(String username, String password)
+					throws SQLException {
+				// TODO Auto-generated method stub
+				return null;
+			}};
 	}
 
 }

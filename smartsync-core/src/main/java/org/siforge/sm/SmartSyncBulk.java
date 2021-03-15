@@ -2,8 +2,11 @@ package org.siforge.sm;
 
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
@@ -61,18 +64,28 @@ public class SmartSyncBulk {
 		}
 	}
 
-	
-	public void syncAllBugged() throws SyncException {
+	/*
+	 *
+	 */	
+	public void syncAllParallel() throws SyncException {
 		try {
-			ForkJoinPool pool = new ForkJoinPool(threads);
+			List<ForkJoinTask<String>> tlist=new ArrayList<>();
+			ForkJoinPool pool = new ForkJoinPool(threads,ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, false,
+			0, threads*2, 1, null, 60_000L /*ForkJoinPool.DEFAULT_KEEPALIVE*/, TimeUnit.MILLISECONDS);
 			logger.info("/- Submitting "+relations2Sync.size()+" Table to sync in parallel ForkJoinPool:"+threads);
 			for (String table : relations2Sync) {
 				SmartSync s = new SmartSync(table, source.getConnection(),
 						destination.getConnection());
-				pool.submit(s);
+				tlist.add(pool.submit(s));
 			}
-			// FIXME @BUG Mmm bulk seems to have some trouble and do not correctly works
-			logger.info("Waiting task to finish...");
+
+			
+			logger.info("Waiting task to finish...");			
+			for (ForkJoinTask<String> forkJoinTask : tlist) {
+				logger.info("Join for "+forkJoinTask.join());
+			}
+			
+			
 
 			pool.shutdown();
 			while (!pool.awaitTermination(100, TimeUnit.MILLISECONDS)) {

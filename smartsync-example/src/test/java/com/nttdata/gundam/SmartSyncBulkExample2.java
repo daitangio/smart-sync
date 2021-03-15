@@ -13,6 +13,7 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
+import org.junit.Test;
 import org.siforge.sm.SmartSync;
 import org.siforge.sm.SmartSyncBulk;
 public class SmartSyncBulkExample2 {
@@ -25,8 +26,8 @@ public class SmartSyncBulkExample2 {
 
 	}
 
-	private void playDemo() {
-		logger.warn("With SQLITE, Bulk sync performance could be poor. Try out a ORACLE!");
+	@Test
+	public void playDemo() {		
 		Connection connection = null,db2;
 		try
 		{
@@ -49,7 +50,8 @@ public class SmartSyncBulkExample2 {
 			logger.info("Db1 and db2 ready. Demo sync db1->db2");
 			logger.info("Final size expected:"+expectedResult);
 			
-			b.syncAll();
+			b.syncAllParallel();
+
 			ResultSet rs=getDestDs().getConnection().prepareStatement("select count(*) AS C from person").executeQuery();
 			rs.next();
 			logger.info("DEST DB SIZE:"+rs.getObject("C"));
