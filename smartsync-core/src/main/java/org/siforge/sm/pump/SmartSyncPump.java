@@ -1,6 +1,7 @@
 package org.siforge.sm.pump;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -57,7 +58,10 @@ public abstract class SmartSyncPump extends MetaSupport {
 					logger.info(table+" EXIST...OK");
 				}catch(SQLException sqe){
 					logger.info("Creating dest table:"+table);
-					ResultSet rs=sc.prepareStatement("SELECT * FROM "+table).executeQuery();
+					PreparedStatement limited=sc.prepareStatement("SELECT * FROM "+table);
+					limited.setFetchSize(1);
+					limited.setMaxRows(1); 
+					ResultSet rs=limited.executeQuery();
 					createTable(table, ensurer,rs.getMetaData(),this.getTypes(rs.getMetaData()));
 				}
 			}
@@ -69,8 +73,10 @@ public abstract class SmartSyncPump extends MetaSupport {
 			bulk.addTables(relations2Sync);
 			bulk.setThreads(8);
 			if(parallel){
+				logger.debug("Running in parallel mode");
 				bulk.syncAllParallel();
 			}else {
+				logger.debug("Running in linear mode");
 				bulk.syncAll();
 			}
 		} catch (SQLException e) {

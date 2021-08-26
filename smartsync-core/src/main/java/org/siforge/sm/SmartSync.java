@@ -23,7 +23,7 @@ import org.apache.log4j.NDC;
 public class SmartSync extends MetaSupport implements Callable<String>{
 
 	/** Every how much time log processed data? */
-	public static final int PERFROMANCE_LOG_SPAN_MS = 1200;
+	public static final int PERFORMANCE_LOG_SPAN_MS = 1200;
 	Connection source,dest;
 	int columns=0;
 	String targetTable;
@@ -46,7 +46,10 @@ public class SmartSync extends MetaSupport implements Callable<String>{
 			
 			this.universalSelect="SELECT * FROM "+ this.targetTable;                
 
-			ResultSet rs=source.createStatement().executeQuery(universalSelect);        
+			PreparedStatement ps=source.prepareStatement(universalSelect);			
+			ps.setFetchSize(5);
+			ResultSet rs=ps.executeQuery();
+
 
 			if(!rs.next()) {
 				logger.warn("Src Table is empty (?)");
@@ -117,7 +120,15 @@ public class SmartSync extends MetaSupport implements Callable<String>{
 
 		int type, rowProcessed=0;
 		Object objC;
-		ResultSet rsSrc= this.source.createStatement().executeQuery(universalSelect);
+
+
+		logger.info("Fetching first bulk data...");
+		PreparedStatement ps=source.prepareStatement(universalSelect);
+		// To avoid consuming all memory limit fecth size:
+		ps.setFetchSize(500);
+		ResultSet rsSrc=ps.executeQuery();
+		logger.debug("Ready to go...");
+
 		PreparedStatement insertStm=this.dest.prepareStatement(universalInsert);
 		long cTime=System.currentTimeMillis();
 		long masked_rows=0;
@@ -147,7 +158,7 @@ public class SmartSync extends MetaSupport implements Callable<String>{
 			if(masked){
 				masked_rows++;
 			}
-			if((System.currentTimeMillis()-cTime) > PERFROMANCE_LOG_SPAN_MS ) {
+			if((System.currentTimeMillis()-cTime) > PERFORMANCE_LOG_SPAN_MS ) {
 				cTime=System.currentTimeMillis();
 				long timeTaken = System.currentTimeMillis()-startTime;
 				logger.info("Records synced so far:"+rowProcessed+" Row/sec:"+                   
