@@ -53,6 +53,7 @@ public class SmartSyncBulk {
 				SmartSync s = new SmartSync(table, source.getConnection(),
 						destination.getConnection());
 				try{
+					logger.debug("Calling SmartSync on "+table);
 					s.call();
 				}catch(Exception e){
 					logger.fatal("Failed sync on table:"+table);
