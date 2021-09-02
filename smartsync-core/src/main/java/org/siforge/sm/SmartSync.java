@@ -23,7 +23,7 @@ import org.apache.log4j.NDC;
 public class SmartSync extends MetaSupport implements Callable<String>{
 
 	/** Every how much time log processed data (and issue a commit)? */
-	public static final int PERFORMANCE_LOG_SPAN_MS = 2000;
+	public static final int COMMIT_SPAN_MS = 2500;
 	Connection source,dest;
 	int columns=0;
 	String targetTable;
@@ -131,8 +131,12 @@ public class SmartSync extends MetaSupport implements Callable<String>{
 
 		logger.info("Fetching first bulk data...");
 		PreparedStatement ps=source.prepareStatement(universalSelect);
-		// To avoid consuming all memory limit fecth size:
-		ps.setFetchSize(500);
+		// TODO: Enable use of environment varible to tune FETCH SIZE
+		// On very big tables and slow connections, to avoid consuming all memory or getting connection dropped,
+		// limit fecth size:		
+		// Fetchsize: 200  -- Records synced so far:844898 Row/sec:6926.245
+		// Fetchsize: 2000 -- Records synced so far:844489 Row/sec:19758.752
+		ps.setFetchSize(2000);
 		ResultSet rsSrc=ps.executeQuery();
 		logger.debug("Ready to go...");
 
@@ -165,12 +169,15 @@ public class SmartSync extends MetaSupport implements Callable<String>{
 			if(masked){
 				masked_rows++;
 			}
-			if((System.currentTimeMillis()-cTime) > PERFORMANCE_LOG_SPAN_MS ) {
+			if((System.currentTimeMillis()-cTime) > COMMIT_SPAN_MS ) {
 				cTime=System.currentTimeMillis();
 				long timeTaken = System.currentTimeMillis()-startTime;
 				logger.info("Records synced so far:"+rowProcessed+" Row/sec:"+                   
 						(1000f*(rowProcessed)/timeTaken));
-				dest.commit();
+
+				long cTime2=System.currentTimeMillis();
+				dest.commit();				
+				logger.debug("DEST Commit time:"+  (System.currentTimeMillis()-cTime2) +"ms");
 			}
 		}
 		dest.commit();
